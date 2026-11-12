@@ -32,6 +32,16 @@ pipeline{
                     sourceCodeRetention: 'LAST_BUILD')
             }
         }
+        stage('Mutation Tests - PIT') {
+            steps {
+                sh 'mvn org.pitest:pitest-maven:mutationCoverage'
+            }
+            post {
+                always {
+                    pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
+                }
+            }
+        }
         // stage("Build Docker Image"){
         //     steps{
         //         sh "docker build -t hassaneid/depi-java:v${BUILD_NUMBER} ."
