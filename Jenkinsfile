@@ -1,62 +1,61 @@
-pipeline {
+pipeline{
+    agent{
+        label "agent-0"
+    }
+    tools {
+      maven 'maven-3-5-4'
+      jdk 'jdk-11'
+    }
 
-  agent any
+    environment {
+        DOCKER_USER = credentials("docker-username")
+        DOCKER_PASS = credentials("docker-passwd")
+    }
 
-  tools{
-    maven 'mvn3.8.6'
-  }
-
-    stages {
-        
-        stage('Unit Tests - JUnit and Jacoco') {
-            steps {
-                  sh "mvn test"
-                  junit 'target/surefire-reports/*.xml'
-                  jacoco execPattern: 'target/jacoco.exec'
-            }
-        }
-      
-        stage('Mutation Tests PIT') {
-            steps{ 
-              sh "mvn org.pitest:pitest-maven:mutationCoverage" 
-              pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
-                 } 
-        }
-        
-        
-        stage('SonarQube - SAST') {
-            steps {
-              withSonarQubeEnv('sonarqube'){
-                  sh "mvn clean verify sonar:sonar \
-                      -Dsonar.projectKey=devsecops \
-                      -Dsonar.host.url=http://35.172.184.152:30012"
-                   }
-                   timeout(time: 2, unit: 'MINUTES'){
-                    script{
-                     waitForQualityGate abortPipeline: true
-                    }
-                  }
-            }
-        }
-      
-        stage('Vulnerability Scan Dependencies'){
+    
+    stages{
+        stage("Build App"){
             steps{
-                sh "mvn dependency-check:check"
-                dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                sh "mvn package install"
             }
         }
-      
-        stage('Build JAR') {
-            steps {
-                  sh "mvn clean install -DskipTests=true"
+        stage("Test App"){
+            steps{
+               sh "mvn test"
             }
         }
-      
-        stage('Artifacts JAR') {
-            steps {
-                 archiveArtifacts artifacts: 'target/*.jar'
+        stage("Archive Jar"){
+            steps{
+                archiveArtifacts artifacts: 'target/*.jar', followSymlinks: false
+                recordCoverage(tools: [[parser: 'JACOCO']],
+                    id: 'jacoco', name: 'JaCoCo Coverage',
+                    sourceCodeRetention: 'LAST_BUILD')
             }
         }
-     
-   }
+        // stage("Build Docker Image"){
+        //     steps{
+        //         sh "docker build -t hassaneid/depi-java:v${BUILD_NUMBER} ."
+        //     }
+        // }
+        // stage("Docker Login"){
+        //     steps{
+        //         sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
+        //     }
+        // }
+        // stage("Docker push"){
+        //     steps{
+        //         sh "docker push hassaneid/depi-java:v${BUILD_NUMBER}"
+        //     }
+        // }
+    }
+
+    post {
+        success {
+            echo "success"
+        }
+        failure {
+            echo "failure"
+        }
+    }
+
 }
