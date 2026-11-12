@@ -5,6 +5,7 @@ pipeline{
     tools {
       maven 'maven-3-5-4'
       jdk 'jdk-11'
+      dependency-check "12.1.0"
     }
 
     environment {
@@ -17,6 +18,16 @@ pipeline{
         stage("Build App"){
             steps{
                 sh "mvn package install"
+            }
+        }
+        stage('OWASP Dependency-Check Vulnerabilities') {
+            steps {
+                dependencyCheck additionalArguments: ''' 
+                            -o './'
+                            -s './'
+                            -f 'ALL' 
+                            --prettyPrint''', odcInstallation: 'OWASP Dependency-Check Vulnerabilities'
+                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
             }
         }
         stage("Test App"){
