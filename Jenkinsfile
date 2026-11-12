@@ -19,16 +19,26 @@ pipeline{
                 sh "mvn package install"
             }
         }
-        stage('OWASP Dependency-Check Vulnerabilities') {
+        stage('Vulnerability Scan') {
             steps {
-                dependencyCheck additionalArguments: ''' 
-                            -o './'
-                            -s './'
-                            -f 'ALL' 
-                            --prettyPrint''', odcInstallation: '12.1.0'
-                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+                sh 'mvn dependency-check:check'
+            }
+            post {
+                always {
+                dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                }
             }
         }
+        // stage('OWASP Dependency-Check Vulnerabilities') {
+        //     steps {
+        //         dependencyCheck additionalArguments: ''' 
+        //                     -o './'
+        //                     -s './'
+        //                     -f 'ALL' 
+        //                     --prettyPrint''', odcInstallation: '12.1.0'
+        //         dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+        //     }
+        // }
         stage("Test App"){
             steps{
                sh "mvn test"
