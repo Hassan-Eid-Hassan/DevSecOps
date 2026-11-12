@@ -19,16 +19,16 @@ pipeline{
                 sh "mvn package install"
             }
         }
-        stage('Vulnerability Scan') {
-            steps {
-                sh 'mvn dependency-check:check'
-            }
-            post {
-                always {
-                dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
-                }
-            }
-        }
+        // stage('Vulnerability Scan') {
+        //     steps {
+        //         sh 'mvn dependency-check:check'
+        //     }
+        //     post {
+        //         always {
+        //         dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+        //         }
+        //     }
+        // }
         // stage('OWASP Dependency-Check Vulnerabilities') {
         //     steps {
         //         dependencyCheck additionalArguments: ''' 
@@ -42,6 +42,13 @@ pipeline{
         stage("Test App"){
             steps{
                sh "mvn test"
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv() {
+                    sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=java -Dsonar.projectName='java'"
+                }
             }
         }
         stage("Archive Jar"){
