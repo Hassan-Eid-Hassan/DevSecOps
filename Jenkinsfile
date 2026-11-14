@@ -17,7 +17,7 @@ pipeline{
         stage("Scan filesystem for vulnerabilities"){
             steps{
                 sh '''
-                    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q fs $WORKSPACE
+                    docker run --rm -v $WORKSPACE:/workspace aquasec/trivy:0.76.2 -q fs /workspace
                 '''
             }
         }
