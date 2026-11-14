@@ -19,46 +19,51 @@ pipeline{
                 sh "mvn package install -DskipTests"
             }
         }
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devsecops -Dsonar.projectName='devsecops'"
-                }
-                timeout(5) {
-                    withSonarQubeEnv('sonarqube') {
-                        waitForQualityGate abortPipeline: true, credentialsId: 'sonar-sa'
-                    }
-                }
-            }
-        }
-        stage("Test App"){
-            steps{
-               sh "mvn test"
-            }
-        }
-        stage("Archive Jar"){
-            steps{
-                archiveArtifacts artifacts: 'target/*.jar', followSymlinks: false
-                recordCoverage(tools: [[parser: 'JACOCO']],
-                    id: 'jacoco', name: 'JaCoCo Coverage',
-                    sourceCodeRetention: 'LAST_BUILD')
-            }
-        }
-        stage('Mutation Tests - PIT') {
-            steps {
-                sh 'mvn org.pitest:pitest-maven:mutationCoverage'
-            }
-            post {
-                always {
-                    pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
-                }
-            }
-        }
-        // stage("Build Docker Image"){
-        //     steps{
-        //         sh "docker build -t hassaneid/depi-java:v${BUILD_NUMBER} ."
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv('sonarqube') {
+        //             sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devsecops -Dsonar.projectName='devsecops'"
+        //         }
+        //         timeout(5) {
+        //             withSonarQubeEnv('sonarqube') {
+        //                 waitForQualityGate abortPipeline: true, credentialsId: 'sonar-sa'
+        //             }
+        //         }
         //     }
         // }
+        // stage("Test App"){
+        //     steps{
+        //        sh "mvn test"
+        //     }
+        // }
+        // stage("Archive Jar"){
+        //     steps{
+        //         archiveArtifacts artifacts: 'target/*.jar', followSymlinks: false
+        //         recordCoverage(tools: [[parser: 'JACOCO']],
+        //             id: 'jacoco', name: 'JaCoCo Coverage',
+        //             sourceCodeRetention: 'LAST_BUILD')
+        //     }
+        // }
+        // stage('Mutation Tests - PIT') {
+        //     steps {
+        //         sh 'mvn org.pitest:pitest-maven:mutationCoverage'
+        //     }
+        //     post {
+        //         always {
+        //             pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
+        //         }
+        //     }
+        // }
+        stage("Dockerfile OPA"){
+            steps{
+                sh "docker run --rm -v \"$PWD\":/workspace -w /workspace openpolicyagent/conftest test --policy dockerfile-security.rego Dockerfile"
+            }
+        }
+        stage("Build Docker Image"){
+            steps{
+                sh "docker build -t hassaneid/depi-java:v${BUILD_NUMBER} ."
+            }
+        }
         // stage("Docker Login"){
         //     steps{
         //         sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
