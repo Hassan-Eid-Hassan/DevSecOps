@@ -56,7 +56,7 @@ pipeline{
         // }
         stage("Dockerfile OPA"){
             steps{
-                sh "docker run --rm -v \"$PWD\":/workspace -w /workspace openpolicyagent/conftest test --policy dockerfile-security.rego Dockerfile"
+                sh "docker run --rm -v \"$WORKSPACE\":/workspace -w /workspace openpolicyagent/conftest test --policy dockerfile-security.rego Dockerfile"
             }
         }
         stage("Build Docker Image"){
