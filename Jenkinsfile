@@ -59,6 +59,15 @@ pipeline{
                 sh "docker run --rm -v \"$WORKSPACE\":/workspace -w /workspace openpolicyagent/conftest test --policy dockerfile-security.rego Dockerfile"
             }
         }
+        stage("Scan Base Docker Image"){
+            steps{
+                sh """
+                    dockerImageName=$(awk 'NR==1 {print $2}' Dockerfile)
+                    echo $dockerImageName
+                    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q image --exit-code 1 --severity HIGH,CRITICAL --light $dockerImageName
+                """
+            }
+        }
         stage("Build Docker Image"){
             steps{
                 sh "docker build -t hassaneid/depi-java:v${BUILD_NUMBER} ."
