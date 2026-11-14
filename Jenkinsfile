@@ -80,7 +80,7 @@ pipeline{
                 sh "docker build -t hassaneid/depi-java:v${BUILD_NUMBER} ."
             }
         }
-        stage("Scan Base Docker Image"){
+        stage("Scan Final Docker Image"){
             steps{
                 sh '''
                     docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q image --exit-code 1 --severity HIGH,CRITICAL hassaneid/depi-java:v${BUILD_NUMBER}
