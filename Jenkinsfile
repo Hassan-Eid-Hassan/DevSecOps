@@ -25,7 +25,9 @@ pipeline{
                     sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devsecops -Dsonar.projectName='devsecops'"
                 }
                 timeout(5) {
-                    waitForQualityGate abortPipeline: true, credentialsId: 'sonar-sa'
+                    withSonarQubeEnv('sonarqube') {
+                        waitForQualityGate abortPipeline: true, credentialsId: 'sonar-sa'
+                    }
                 }
             }
         }
