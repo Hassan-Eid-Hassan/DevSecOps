@@ -14,16 +14,16 @@ pipeline{
 
     
     stages{
+        stage("Build App"){
+            steps{
+                sh "mvn package install -DskipTests"
+            }
+        }
         stage("Scan filesystem for vulnerabilities"){
             steps{
                 sh '''
                     trivy -q fs $WORKSPACE
                 '''
-            }
-        }
-        stage("Build App"){
-            steps{
-                sh "mvn package install -DskipTests"
             }
         }
         // stage('SonarQube Analysis') {
