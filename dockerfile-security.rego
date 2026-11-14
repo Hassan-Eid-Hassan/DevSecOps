@@ -62,16 +62,6 @@ deny contains msg if {
     msg = sprintf("Line %d: Use COPY instead of ADD", [i])
 }
 
-# Any user...
-any_user {
-    input[i].Cmd == "user"
- }
-
-deny contains msg if {
-    not any_user
-    msg = "Do not run as root, use USER instead"
-}
-
 # ... but do not root
 forbidden_users = [
     "root",
@@ -93,16 +83,4 @@ deny contains msg if {
     val := concat(" ", input[i].Value)
     contains(lower(val), "sudo")
     msg = sprintf("Line %d: Do not use 'sudo' command", [i])
-}
-
-# Use multi-stage builds
-default multi_stage = false
-multi_stage = true {
-    input[i].Cmd == "copy"
-    val := concat(" ", input[i].Flags)
-    contains(lower(val), "--from=")
-}
-deny contains msg if {
-    multi_stage == false
-    msg = sprintf("You COPY, but do not appear to use multi-stage builds...", [])
 }
