@@ -14,6 +14,24 @@ pipeline{
 
     
     stages{
+        stage ('Gitleak scan'){
+            steps{
+                script{ 
+                    // Pull and run the Gitleaks Docker Image with a custom config file
+                    sh '''
+                    docker run --rm -v $(pwd):/path -v $(pwd)/.gitleaks.toml:/.gitleaks.toml zricethezav/gitleaks:latest detect --source /path --config /.gitleaks.toml --report-format json --report-path /path/gitleaks-report.json
+                    '''
+                    // Archive the report as an Artifacts
+                    archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
+                    
+                    // Display the contents of the report in a separate step
+                    script{
+                        echo "Gitleaks Report:"
+                        sh 'cat gitleaks-report.json || echo "Report not found"'
+                    }
+                }
+            }
+        }
         stage("Build App"){
             steps{
                 sh "mvn package install -DskipTests"
