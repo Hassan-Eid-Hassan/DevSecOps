@@ -1,3 +1,3 @@
-FROM 28-ea-jdk
+FROM openjdk:28-ea-jdk
 COPY ./target/*.jar test.jar
 ENTRYPOINT ["java", "-jar", "test.jar"]
