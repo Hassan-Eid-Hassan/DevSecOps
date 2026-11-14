@@ -1,6 +1,4 @@
-FROM openjdk:latest
+FROM openjdk:11.0.11-slim
 EXPOSE 8080
-USER root
-ARG JAR_FILE=target/*.jar
-ADD ${JAR_FILE} app.jar
+COPY target/*.jar app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]
