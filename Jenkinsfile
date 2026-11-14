@@ -14,6 +14,13 @@ pipeline{
 
     
     stages{
+        stage("Scan filesystem for vulnerabilities"){
+            steps{
+                sh '''
+                    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q fs $WORKSPACE
+                '''
+            }
+        }
         stage("Build App"){
             steps{
                 sh "mvn package install -DskipTests"
@@ -64,13 +71,20 @@ pipeline{
                 sh '''
                     dockerImageName=$(awk 'NR==1 {print $2}' Dockerfile)
                     echo $dockerImageName
-                    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q image --exit-code 1 --severity HIGH,CRITICAL $dockerImageName
+                    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q image --severity HIGH,CRITICAL $dockerImageName
                 '''
             }
         }
         stage("Build Docker Image"){
             steps{
                 sh "docker build -t hassaneid/depi-java:v${BUILD_NUMBER} ."
+            }
+        }
+        stage("Scan Base Docker Image"){
+            steps{
+                sh '''
+                    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q image --exit-code 1 --severity HIGH,CRITICAL hassaneid/depi-java:v${BUILD_NUMBER}
+                '''
             }
         }
         // stage("Docker Login"){
