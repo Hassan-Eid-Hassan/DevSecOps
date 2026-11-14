@@ -19,7 +19,7 @@ pipeline{
                 script{ 
                     // Pull and run the Gitleaks Docker Image with a custom config file
                     sh '''
-                    docker run --rm -v $(pwd):/path -v $(pwd):/conf zricethezav/gitleaks:latest detect --source /path --config /conf/.gitleaks.toml --report-format json --report-path /path/gitleaks-report.json
+                    docker run --rm -v $(pwd):/path -v zricethezav/gitleaks:latest detect --source /path --config /path/.gitleaks.toml --report-format json --report-path /path/gitleaks-report.json
                     '''
                     // Archive the report as an Artifacts
                     archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
