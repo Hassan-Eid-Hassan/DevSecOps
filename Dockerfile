@@ -1,3 +1,3 @@
-FROM openjdk:11.0.11-slim
+FROM openjdk
 COPY ./target/*.jar test.jar
 ENTRYPOINT ["java", "-jar", "test.jar"]
