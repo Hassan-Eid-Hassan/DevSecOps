@@ -64,7 +64,7 @@ pipeline{
                 sh '''
                     dockerImageName=$(awk 'NR==1 {print $2}' Dockerfile)
                     echo $dockerImageName
-                    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q image --exit-code 1 --severity HIGH,CRITICAL --light $dockerImageName
+                    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.76.2 -q image --exit-code 1 --severity HIGH,CRITICAL $dockerImageName
                 '''
             }
         }
