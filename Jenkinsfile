@@ -16,39 +16,22 @@ pipeline{
     stages{
         stage("Build App"){
             steps{
-                sh "mvn package install"
-            }
-        }
-        // stage('Vulnerability Scan') {
-        //     steps {
-        //         sh 'mvn dependency-check:check'
-        //     }
-        //     post {
-        //         always {
-        //         dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
-        //         }
-        //     }
-        // }
-        // stage('OWASP Dependency-Check Vulnerabilities') {
-        //     steps {
-        //         dependencyCheck additionalArguments: ''' 
-        //                     -o './'
-        //                     -s './'
-        //                     -f 'ALL' 
-        //                     --prettyPrint''', odcInstallation: '12.1.0'
-        //         dependencyCheckPublisher pattern: 'dependency-check-report.xml'
-        //     }
-        // }
-        stage("Test App"){
-            steps{
-               sh "mvn test"
+                sh "mvn package install -DskipTests"
             }
         }
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube') {
-                    sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=java -Dsonar.projectName='java'"
+                    sh "mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devsecops -Dsonar.projectName='devsecops'"
                 }
+                timeout(5) {
+                    waitForQualityGate abortPipeline: true, credentialsId: 'sonar-sa'
+                }
+            }
+        }
+        stage("Test App"){
+            steps{
+               sh "mvn test"
             }
         }
         stage("Archive Jar"){
